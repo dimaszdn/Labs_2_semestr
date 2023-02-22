@@ -147,15 +147,19 @@ namespace ch
 
     std::istream& operator>>(std::istream& in, String& s)
     {
-        s.m_str = new char [s.m_size + 1];
-        char a;
+        if (s.m_str != nullptr)
+            delete[] s.m_str;
+        char* tmp = new char[1000];
+        int index = 0;
         while (in.peek() != '\n')
         {
-            in.get(a);
-            ++s.m_size;
-            s.m_str[s.m_size - 1] = a;
+            in.get(tmp[index]);
+            ++index;
         }
-        s.m_str[s.m_size] = '\0';
+        tmp[index] = '\0';
+        size_t size = std::strlen(tmp);
+        s.m_str = tmp;
+        s.m_size = size;
         return in;
     }
 }

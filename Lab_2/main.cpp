@@ -3,6 +3,8 @@
 
 int main()
 {
-    ch::String s("Hello, my mame is Dima!");
+    ch::String s;
+    std::cin >> s;
+    std::cout << s.Length();
     return 0;
 }
