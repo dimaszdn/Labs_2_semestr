@@ -1,10 +1,4 @@
 #pragma once
-#include<vector>
-
-int maxSize(const int a, const int b)
-{
-    return a > b ? a : b;
-}
 
 template<typename T, int row, int col>
 class Matrix
@@ -14,6 +8,13 @@ private:
 
 public:
     Matrix() = default;
+
+    Matrix(const T( &matrix)[row][col])
+    {
+        for (int i = 0; i < row; ++i)
+            for (int j = 0; j < col; ++j)
+                m_matrix[i][j] = matrix[i][j];
+    }
 
     ~Matrix() = default;
 
@@ -32,38 +33,94 @@ public:
         return *this;
     }
 
-    template<int S, int N> // N - str, M - row
-    Matrix<T, S, N>& operator *= (const Matrix<T, S, N>& right)
+    Matrix<T, row, col> operator *= (const Matrix<T, row, col>& right)
     {
-        if (N == row)
+        Matrix tmp = *this;
+        int sum = 0;
+        for (int k = 0; k < row; ++k)
         {
-            Matrix<T, S, N> tmp;
-            for (int k = 0; k < row; ++k)
+            for (int i = 0; i < col; ++i)
             {
-                for (int i = 0; i < N; ++i)
+                for (int j = 0; j < row; ++j)
                 {
-                    for (int j = 0; j < row; ++j)
-                    {
-                        tmp.m_matrix[k][i] += m_matrix[k][j] * right.m_matrix[j][i];
-                    }
+                    sum += tmp.m_matrix[k][j] * right.m_matrix[j][i];
                 }
+                m_matrix[k][i] = sum;
+                sum = 0;
             }
-            *this = tmp;
         }
         return *this;
     }
-    /*
-    Matrix<T, row, col> (const Matrix<T, row, col>& right)
+
+    T get(unsigned int i, unsigned int j) const
     {
-        memcpy(m_matrix, right.m_matrix, sizeof right.m_matrix);
-    }*/
-    /*
-    Matrix& operator = (const Matrix right)
+        return m_matrix[i][j];
+    }
+
+    T& set(unsigned int i, unsigned int j)
     {
-        Matrix tmp = right;
-        std::swap(m_matrix, tmp.m_matrix);
+        return m_matrix[i][j];
+    }
+
+    T& at(int i, int j)
+    {
+        if (i < 0 || i >= row || j < 0 || j >= col)
+            throw std::out_of_range("Invalid index!");
+        return m_matrix[i][j];
+    }
+
+    template<int r_row, int r_col>
+    Matrix<T, row, r_col> operator * (const Matrix<T, r_row, r_col>& right)
+    {
+        Matrix<T, row, r_col> tmp{};
+        int sum = 0;
+        if (col == r_row)
+        {
+            for (int k = 0; k < row; ++k)
+            {
+                for (int i = 0; i < r_col; ++i)
+                {
+                    tmp.set(k, i) = 0;
+                    for (int j = 0; j < col; ++j)
+                    {
+                        tmp.set(k, i) += m_matrix[k][j] * right.get(j, i);
+                    }
+                }
+            }
+        }
+        return tmp;
+    }
+
+    Matrix<T, row, col> & operator++()
+    {
+        for (int i = 0; i < row; ++i)
+            for (int j = 0; j < col; ++j)
+                ++m_matrix[i][j];
         return *this;
-    }*/
+    }
+
+    T Det()
+    {
+        if (row == col)
+        {
+            if (col == 1)
+                return m_matrix[0][0];
+
+            if (col == 2)
+                return (m_matrix[0][0] * m_matrix[1][1] - m_matrix[0][1] * m_matrix[1][0]);
+
+            if (col == 3)
+            {
+                int positive = (m_matrix[0][0] * m_matrix[1][1] * m_matrix[2][2]) + (m_matrix[1][0] * m_matrix[2][1] *
+                        m_matrix[0][2]) + (m_matrix[0][1] * m_matrix[1][2] * m_matrix[2][0]);
+
+                int negative = -1 * (m_matrix[0][2] * m_matrix[1][1] * m_matrix[2][0]) - (m_matrix[0][0] * m_matrix[2][1] *
+                        m_matrix[1][2]) - (m_matrix[0][1] * m_matrix[1][0] * m_matrix[2][2]);
+
+                return (positive + negative);
+            }
+        }
+    }
 
     template<typename U, int ROW, int COL>
     friend std::ostream& operator << (std::ostream& out, const Matrix<U, ROW, COL>& A);
@@ -110,25 +167,3 @@ std::istream& operator >> (std::istream& in, Matrix<U, ROW, COL>& A)
     }
     return in;
 }
-
-using Matrix22i = Matrix<int, 2, 2>;
-using Matrix33i = Matrix<int, 3, 3>;
-using Matrix21i = Matrix<int, 2, 1>;
-using Matrix12i = Matrix<int, 1, 2>;
-using Matrix22d = Matrix<double, 2, 2>;
-using Matrix33d = Matrix<double, 3, 3>;
-using Matrix21d = Matrix<double, 2, 1>;
-using Matrix12d = Matrix<double, 1, 2>;
-using Matrix22c = Matrix<char, 2, 2>;
-using Matrix33c = Matrix<char, 3, 3>;
-using Matrix21c = Matrix<char, 2, 1>;
-using Matrix12c = Matrix<char, 1, 2>;
-using Matrix31i = Matrix<int, 3, 1>;
-using Matrix31c = Matrix<char, 3, 1>;
-using Matrix31d = Matrix<double, 3, 1>;
-using Matrix13i = Matrix<int, 1, 3>;
-using Matrix13c = Matrix<char, 1, 3>;
-using Matrix13d = Matrix<double, 1, 3>;
-using MatrixZero33i = Matrix<int, 3, 3>;
-using MatrixZero33c = Matrix<char, 3, 3>;
-using MatrixZero33d = Matrix<double, 3, 3>;
